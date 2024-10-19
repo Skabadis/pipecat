@@ -26,7 +26,6 @@ from pipecat.processors.aggregators.openai_llm_context import (
     OpenAILLMContextFrame,
 )
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
-from loguru import logger
 
 class LLMResponseAggregator(FrameProcessor):
     def __init__(
@@ -374,7 +373,6 @@ class LLMUserContextAggregator(LLMContextAggregator):
     # see the tests at test_LLM_user_context_aggregator
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await FrameProcessor.process_frame(self, frame, direction)
-        logger.info(f"Inside LLMUserContextAggregator")
         send_aggregation = False
 
         if isinstance(frame, self._start_frame):
