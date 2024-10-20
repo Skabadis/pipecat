@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed `enable_usage_metrics` to control LLM/TTS usage metrics separately
+  from `enable_metrics`.
+
+## [0.0.46] - 2024-10-19
+
 ### Added
 
 - Added `audio_passthrough` parameter to `STTService`. If enabled it allows
@@ -32,6 +39,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Renamed `OpenAILLMServiceRealtimeBeta` to `OpenAIRealtimeBetaLLMService` to
   match other services.
+
+### Deprecated
+
+- `LLMUserResponseAggregator` and `LLMAssistantResponseAggregator` are
+  mostly deprecated, use `OpenAILLMContext` instead.
 
 - The `vad` package is now deprecated and `audio.vad` should be used
   instead. The `avd` package will get removed in a future release.
