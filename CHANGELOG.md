@@ -5,7 +5,7 @@ All notable changes to **Pipecat** will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.0.47] - 2024-10-22
 
 ### Added
 
@@ -15,7 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a foundational example for Gladia transcription:
   `13c-gladia-transcription.py`
 
+### Changed
+
+- Updated `GladiaSTTService` to use the V2 API.
+
+- Changed `DailyTransport` transcription model to `nova-2-general`.
+
 ### Fixed
+
+- Fixed an issue that would cause an import error when importing
+  `SileroVADAnalyzer` from the old package `pipecat.vad.silero`.
 
 - Fixed `enable_usage_metrics` to control LLM/TTS usage metrics separately
   from `enable_metrics`.
@@ -31,6 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `PlayHTHttpTTSService`.
 
 ### Changed
+
+- Changed `DeepgramSTTService` model to `nova-2-general`.
 
 - Moved `SileroVAD` audio processor to `processors.audio.vad`.
 
