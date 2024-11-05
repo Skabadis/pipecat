@@ -9,9 +9,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added audio filter `NoisereduceFilter`.
+
+- Introduce input transport audio filters (`BaseAudioFilter`). Audio filters can
+  be used to remove background noises before audio is sent to VAD.
+
+- Introduce output transport audio mixers (`BaseAudioMixer`). Output transport
+  audio mixers can be used, for example, to add background sounds or any other
+  audio mixing functionality before the output audio is actually written to the
+  transport.
+
+- Added `GatedOpenAILLMContextAggregator`. This aggregator keeps the last
+  received OpenAI LLM context frame and it doesn't let it through until the
+  notifier is notified.
+
+- Added `WakeNotifierFilter`. This processor expects a list of frame types and
+  will execute a given callback predicate when a frame of any of those type is
+  being processed. If the callback returns true the notifier will be notified.
+
+- Added `NullFilter`. A null filter doesn't push any frames upstream or
+  downstream. This is usually used to disable one of the pipelines in
+  `ParallelPipeline`.
+
+- Added `EventNotifier`. This can be used as a very simple synchronization
+  feature between processors.
+
+- Added `TavusVideoService`. This is an integration for Tavus digital twins.
+  (see https://www.tavus.io/)
+
 - Added `DailyTransport.update_subscriptions()`. This allows you to have fine
   grained control of what media subscriptions you want for each participant in a
   room.
+
+### Changed
+
+- The following `DailyTransport` functions are now `async` which means they need
+  to be awaited: `start_dialout`, `stop_dialout`, `start_recording`,
+  `stop_recording`, `capture_participant_transcription` and
+  `capture_participant_video`.
+
+- Changed default output sample rate to 24000. This changes all TTS service to
+  output to 24000 and also the default output transport sample rate. This
+  improves audio quality at the cost of some extra bandwidth.
+
+### Fixed
+
+- Websocket transports (FastAPI and Websocket) now synchronize with time before
+  sending data. This allows for interruptions to just work out of the box.
+
+- Improved bot speaking detection for all TTS services by using actual bot
+  audio.
+
+- Fixed an issue that was generating constant bot started/stopped speaking
+  frames for HTTP TTS services.
+
+- Fixed an issue that was causing stuttering with AWS TTS service.
+
+- Fixed an issue with PlayHTTTSService, where the TTFB metrics were reporting
+  very small time values.
+
+### Other
+
+- Add `23-bot-background-sound.py` foundational example.
+
+- Added a new foundational example `22-natural-conversation.py`. This example
+  shows how to achieve a more natural conversation detecting when the user ends
+  statement.
 
 ## [0.0.47] - 2024-10-22
 

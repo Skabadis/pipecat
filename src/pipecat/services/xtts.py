@@ -39,9 +39,10 @@ class XTTSService(TTSService):
         language: Language,
         base_url: str,
         aiohttp_session: aiohttp.ClientSession,
+        sample_rate: int = 24000,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(sample_rate=sample_rate, **kwargs)
 
         self._settings = {
             "language": self.language_to_service_language(language),
@@ -150,28 +151,30 @@ class XTTSService(TTSService):
             async for chunk in r.content.iter_chunked(1024):
                 if len(chunk) > 0:
                     await self.stop_ttfb_metrics()
-                    # Append new chunk to the buffer
+                    # Append new chunk to the buffer.
                     buffer.extend(chunk)
 
-                    # Check if buffer has enough data for processing
+                    # Check if buffer has enough data for processing.
                     while (
                         len(buffer) >= 48000
                     ):  # Assuming at least 0.5 seconds of audio data at 24000 Hz
-                        # Process the buffer up to a safe size for resampling
+                        # Process the buffer up to a safe size for resampling.
                         process_data = buffer[:48000]
-                        # Remove processed data from buffer
+                        # Remove processed data from buffer.
                         buffer = buffer[48000:]
 
-                        # Resample the audio from 24000 Hz to 16000 Hz
-                        resampled_audio = resample_audio(bytes(process_data), 24000, 16000)
+                        # XTTS uses 24000 so we need to resample to our desired rate.
+                        resampled_audio = resample_audio(
+                            bytes(process_data), 24000, self._sample_rate
+                        )
                         # Create the frame with the resampled audio
-                        frame = TTSAudioRawFrame(resampled_audio, 16000, 1)
+                        frame = TTSAudioRawFrame(resampled_audio, self._sample_rate, 1)
                         yield frame
 
-            # Process any remaining data in the buffer
+            # Process any remaining data in the buffer.
             if len(buffer) > 0:
-                resampled_audio = resample_audio(bytes(buffer), 24000, 16000)
-                frame = TTSAudioRawFrame(resampled_audio, 16000, 1)
+                resampled_audio = resample_audio(bytes(buffer), 24000, self._sample_rate)
+                frame = TTSAudioRawFrame(resampled_audio, self._sample_rate, 1)
                 yield frame
 
             yield TTSStoppedFrame()

@@ -64,7 +64,7 @@ async def main():
   # Use Daily as a real-time media transport (WebRTC)
   transport = DailyTransport(
     room_url=...,
-    token=...,
+    token="", # leave empty. Note: token is _not_ your api key
     bot_name="Bot Name",
     params=DailyParams(audio_out_enabled=True))
 
@@ -178,7 +178,7 @@ You can use [use-package](https://github.com/jwiegley/use-package) to install [e
   :ensure t
   :hook ((python-mode . lazy-ruff-mode))
   :config
-  (setq lazy-ruff-format-command "ruff format --config line-length=100")
+  (setq lazy-ruff-format-command "ruff format")
   (setq lazy-ruff-only-format-block t)
   (setq lazy-ruff-only-format-region t)
   (setq lazy-ruff-only-format-buffer t))
@@ -197,14 +197,13 @@ You can use [use-package](https://github.com/jwiegley/use-package) to install [e
 ### Visual Studio Code
 
 Install the
-[Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) extension. Then edit the user settings (_Ctrl-Shift-P_ `Open User Settings (JSON)`) and set it as the default Python formatter, enable formatting on save and configure `ruff` arguments:
+[Ruff](https://marketplace.visualstudio.com/items?itemName=charliermarsh.ruff) extension. Then edit the user settings (_Ctrl-Shift-P_ `Open User Settings (JSON)`) and set it as the default Python formatter, and enable formatting on save:
 
 ```json
 "[python]": {
     "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true
-},
-"ruff.format.args": ["--config", "line-length=100"]
+}
 ```
 
 ## Getting help

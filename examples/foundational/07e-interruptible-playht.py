@@ -40,7 +40,6 @@ async def main():
             "Respond bot",
             DailyParams(
                 audio_out_enabled=True,
-                audio_out_sample_rate=16000,
                 transcription_enabled=True,
                 vad_enabled=True,
                 vad_analyzer=SileroVADAnalyzer(),
@@ -89,7 +88,7 @@ async def main():
 
         @transport.event_handler("on_first_participant_joined")
         async def on_first_participant_joined(transport, participant):
-            transport.capture_participant_transcription(participant["id"])
+            await transport.capture_participant_transcription(participant["id"])
             # Kick off the conversation.
             messages.append({"role": "system", "content": "Please introduce yourself to the user."})
             await task.queue_frames([LLMMessagesFrame(messages)])
