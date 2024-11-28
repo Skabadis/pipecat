@@ -14,13 +14,16 @@ from loguru import logger
 from pydantic.main import BaseModel
 
 from pipecat.frames.frames import (
+    BotStoppedSpeakingFrame,
     CancelFrame,
     EndFrame,
     ErrorFrame,
     Frame,
+    LLMFullResponseEndFrame,
     StartFrame,
     StartInterruptionFrame,
     TTSAudioRawFrame,
+    TTSSpeakFrame,
     TTSStartedFrame,
     TTSStoppedFrame,
 )
@@ -41,29 +44,27 @@ except ModuleNotFoundError as e:
 
 
 def language_to_cartesia_language(language: Language) -> str | None:
-    match language:
-        case Language.DE:
-            return "de"
-        case (
-            Language.EN
-            | Language.EN_US
-            | Language.EN_GB
-            | Language.EN_AU
-            | Language.EN_NZ
-            | Language.EN_IN
-        ):
-            return "en"
-        case Language.ES:
-            return "es"
-        case Language.FR | Language.FR_CA:
-            return "fr"
-        case Language.JA:
-            return "ja"
-        case Language.PT | Language.PT_BR:
-            return "pt"
-        case Language.ZH | Language.ZH_TW:
-            return "zh"
-    return None
+    BASE_LANGUAGES = {
+        Language.DE: "de",
+        Language.EN: "en",
+        Language.ES: "es",
+        Language.FR: "fr",
+        Language.JA: "ja",
+        Language.PT: "pt",
+        Language.ZH: "zh",
+    }
+
+    result = BASE_LANGUAGES.get(language)
+
+    # If not found in base languages, try to find the base language from a variant
+    if not result:
+        # Convert enum value to string and get the base language part (e.g. es-ES -> es)
+        lang_str = str(language.value)
+        base_code = lang_str.split("-")[0].lower()
+        # Look up the base code in our supported languages
+        result = base_code if base_code in BASE_LANGUAGES.values() else None
+
+    return result
 
 
 class CartesiaTTSService(WordTTSService):
@@ -114,7 +115,7 @@ class CartesiaTTSService(WordTTSService):
             },
             "language": self.language_to_service_language(params.language)
             if params.language
-            else Language.EN,
+            else "en",
             "speed": params.speed,
             "emotion": params.emotion,
         }
@@ -231,7 +232,7 @@ class CartesiaTTSService(WordTTSService):
                     # timestamp to set send context frames.
                     self._context_id = None
                     await self.add_word_timestamps(
-                        [("TTSStoppedFrame", 0), ("LLMFullResponseEndFrame", 0)]
+                        [("TTSStoppedFrame", 0), ("LLMFullResponseEndFrame", 0), ("Reset", 0)]
                     )
                 elif msg["type"] == "timestamps":
                     await self.add_word_timestamps(
@@ -257,6 +258,19 @@ class CartesiaTTSService(WordTTSService):
             pass
         except Exception as e:
             logger.error(f"{self} exception: {e}")
+
+    async def process_frame(self, frame: Frame, direction: FrameDirection):
+        await super().process_frame(frame, direction)
+
+        # If we received a TTSSpeakFrame and the LLM response included text (it
+        # might be that it's only a function calling response) we pause
+        # processing more frames until we receive a BotStoppedSpeakingFrame.
+        if isinstance(frame, TTSSpeakFrame):
+            await self.pause_processing_frames()
+        elif isinstance(frame, LLMFullResponseEndFrame) and self._context_id:
+            await self.pause_processing_frames()
+        elif isinstance(frame, BotStoppedSpeakingFrame):
+            await self.resume_processing_frames()
 
     async def run_tts(self, text: str) -> AsyncGenerator[Frame, None]:
         logger.debug(f"Generating TTS: [{text}]")
@@ -316,7 +330,7 @@ class CartesiaHttpTTSService(TTSService):
             },
             "language": self.language_to_service_language(params.language)
             if params.language
-            else Language.EN,
+            else "en",
             "speed": params.speed,
             "emotion": params.emotion,
         }

@@ -9,6 +9,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a new RTVI message called `disconnect-bot`, which when handled pushes
+  an `EndFrame` to trigger the pipeline to stop.
+
+### Changed
+
+- Expanded the transcriptions.language module to support a superset of
+  languages.
+
+- Updated STT and TTS services with language options that match the supported
+  languages for each service.
+
+### Fixed
+
+- Fixed Google Gemini message handling to properly convert appended messages to Gemini's required format
+
+## [0.0.49] - 2024-11-17
+
+### Added
+
+- Added RTVI `on_bot_started` event which is useful in a single turn
+  interaction.
+
+- Added `DailyTransport` events `dialin-connected`, `dialin-stopped`,
+  `dialin-error` and `dialin-warning`. Needs daily-python >= 0.13.0.
+
+- Added `RimeHttpTTSService` and the `07q-interruptible-rime.py` foundational
+  example.
+
+- Added `STTMuteFilter`, a general-purpose processor that combines STT
+  muting and interruption control. When active, it prevents both transcription
+  and interruptions during bot speech. The processor supports multiple
+  strategies: `FIRST_SPEECH` (mute only during bot's first
+  speech), `ALWAYS` (mute during all bot speech), or `CUSTOM` (using provided
+  callback).
+
+- Added `STTMuteFrame`, a control frame that enables/disables speech
+  transcription in STT services.
+
+## [0.0.48] - 2024-11-10 "Antonio release"
+
+### Added
+
+- There's now an input queue in each frame processor. When you call
+  `FrameProcessor.push_frame()` this will internally call
+  `FrameProcessor.queue_frame()` on the next processor (upstream or downstream)
+  and the frame will be internally queued (except system frames). Then, the
+  queued frames will get processed. With this input queue it is also possible
+  for FrameProcessors to block processing more frames by calling
+  `FrameProcessor.pause_processing_frames()`. The way to resume processing
+  frames is by calling `FrameProcessor.resume_processing_frames()`.
+
 - Added audio filter `NoisereduceFilter`.
 
 - Introduce input transport audio filters (`BaseAudioFilter`). Audio filters can
@@ -41,6 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   grained control of what media subscriptions you want for each participant in a
   room.
 
+- Added audio filter `KrispFilter`.
+
 ### Changed
 
 - The following `DailyTransport` functions are now `async` which means they need
@@ -51,6 +104,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed default output sample rate to 24000. This changes all TTS service to
   output to 24000 and also the default output transport sample rate. This
   improves audio quality at the cost of some extra bandwidth.
+
+- `AzureTTSService` now uses Azure websockets instead of HTTP requests.
+
+- The previous `AzureTTSService` HTTP implementation is now
+  `AzureHttpTTSService`.
 
 ### Fixed
 
@@ -67,6 +125,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed an issue with PlayHTTTSService, where the TTFB metrics were reporting
   very small time values.
+
+- Fixed an issue where AzureTTSService wasn't initializing the specified
+  language.
 
 ### Other
 

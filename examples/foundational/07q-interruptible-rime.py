@@ -20,8 +20,7 @@ from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.services.openai import OpenAILLMService
-from pipecat.services.playht import PlayHTTTSService
-from pipecat.transcriptions.language import Language
+from pipecat.services.rime import RimeHttpTTSService
 from pipecat.transports.services.daily import DailyParams, DailyTransport
 
 load_dotenv(override=True)
@@ -46,11 +45,10 @@ async def main():
             ),
         )
 
-        tts = PlayHTTTSService(
-            user_id=os.getenv("PLAYHT_USER_ID"),
-            api_key=os.getenv("PLAYHT_API_KEY"),
-            voice_url="s3://voice-cloning-zero-shot/d9ff78ba-d016-47f6-b0ef-dd630f59414e/female-cs/manifest.json",
-            params=PlayHTTTSService.InputParams(language=Language.EN),
+        tts = RimeHttpTTSService(
+            api_key=os.getenv("RIME_API_KEY", ""),
+            voice_id="rex",
+            params=RimeHttpTTSService.InputParams(reduce_latency=True),
         )
 
         llm = OpenAILLMService(api_key=os.getenv("OPENAI_API_KEY"), model="gpt-4o")
